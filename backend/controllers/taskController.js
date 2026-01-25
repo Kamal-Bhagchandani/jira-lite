@@ -1,4 +1,5 @@
 const Task = require("../models/Task");
+const Project = require("../models/Project");
 
 // Create task (Admin or Project Member)
 exports.createTask = async (req, res) => {
@@ -33,9 +34,35 @@ exports.updateTaskStatus = async (req, res) => {
 
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
+    }
+
+    const isAdmin = req.user.role === "admin";
+
+    // If task is assigned, only assignee or admin can update status
+    if (task.assignedTo) {
+      const isAssignee = task.assignedTo.toString() === req.user._id.toString();
+
+      if (!isAssignee && !isAdmin) {
+        return res.status(403).json({ message: "Only assignee or admin can update this task" });
+      }
+    }
+    // If task is unassigned, only project members or admin can update status
+    else {
+      const project = await Project.findById(task.project);
+
+      const isProjectMember = project.members.some(
+        (memberId) => memberId.toString() === req.user._id.toString()
+      );
+
+      const isProjectCreator = project.createdBy.toString() === req.user._id.toString();
+
+      if (!isProjectMember && !isProjectCreator && !isAdmin) {
+        return res.status(403).json({
+          message: "Only project members or admin can update this task",
+        });
+      }
     }
 
     task.status = status;
