@@ -1,14 +1,16 @@
 const express = require("express");
-const { createProject, getMyProjects } = require("../controllers/projectController");
+const { createProject, getMyProjects, addProjectMember } = require("../controllers/projectController");
 const { protect } = require("../middleware/authMiddleware");
-const { isAdmin } = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-// Admin only
-router.post("/", protect, isAdmin, createProject);
+// Any logged-in user can create a project
+router.post("/", protect, createProject);
 
-// Logged-in users
+// Logged-in users get their projects
 router.get("/", protect, getMyProjects);
+
+// Project owner adds members
+router.post("/:projectId/members", protect, addProjectMember);
 
 module.exports = router;

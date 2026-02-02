@@ -1,5 +1,5 @@
 const express = require("express");
-const { createTask, updateTaskStatus, getTasksByProject } = require("../controllers/taskController");
+const { createTask, updateTaskStatus, getTasksByProject, updateTaskAssignee } = require("../controllers/taskController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -12,5 +12,7 @@ router.put("/:id/status", protect, updateTaskStatus);
 
 // Get tasks of a project
 router.get("/project/:projectId", protect, getTasksByProject);
+
+router.patch("/:id/assignee", protect, updateTaskAssignee);
 
 module.exports = router;
