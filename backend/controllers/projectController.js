@@ -3,18 +3,51 @@ const User = require("../models/User");
 
 // Logged in user Creates project
 exports.createProject = async (req, res) => {
-  const { name, description, members } = req.body;
+  const { name, description, members = [] } = req.body;
 
   if (!name) {
     return res.status(400).json({ message: "Project name is required" });
   }
 
   try {
+    if (!Array.isArray(members)) {
+      return res
+        .status(400)
+        .json({ message: "Members must be an array of emails" });
+    }
+
+    // Normalize emails
+    const normalizedEmails = members.map((e) => e.toLowerCase().trim());
+
+    // Check duplicates FIRST
+    const uniqueEmails = [...new Set(normalizedEmails)];
+    if (uniqueEmails.length !== normalizedEmails.length) {
+      return res.status(400).json({
+        message: "Please enter unique email addresses",
+      });
+    }
+
+    // Find users by email
+    const users = await User.find({ email: { $in: uniqueEmails } });
+
+    if (users.length !== uniqueEmails.length) {
+      return res
+        .status(400)
+        .json({
+          message: "One or more users do not have an account on this platform",
+        });
+    }
+
+    // Remove creator if included
+    const memberIds = users
+      .filter((u) => u._id.toString() !== req.user._id.toString())
+      .map((u) => u._id);
+
     const project = await Project.create({
       name,
       description,
       createdBy: req.user._id,
-      members,
+      members: memberIds,
     });
 
     res.status(201).json(project);
@@ -27,10 +60,7 @@ exports.createProject = async (req, res) => {
 exports.getMyProjects = async (req, res) => {
   try {
     const projects = await Project.find({
-      $or: [
-        { createdBy: req.user._id },
-        { members: req.user._id },
-      ],
+      $or: [{ createdBy: req.user._id }, { members: req.user._id }],
     }).populate("createdBy", "name email");
 
     res.json(projects);
@@ -69,9 +99,7 @@ exports.addProjectMember = async (req, res) => {
     // Prevent duplicates (including creator)
     const alreadyMember =
       project.createdBy.toString() === userId ||
-      project.members.some(
-        (memberId) => memberId.toString() === userId
-      );
+      project.members.some((memberId) => memberId.toString() === userId);
 
     if (alreadyMember) {
       return res.status(400).json({
