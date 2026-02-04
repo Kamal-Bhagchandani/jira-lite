@@ -73,42 +73,60 @@ exports.getMyProjects = async (req, res) => {
 exports.addProjectMember = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { userId } = req.body;
+    let { email } = req.body;
+
+    // Validate input
+    if (!email) {
+      return res.status(400).json({
+        message: "Member email is required",
+      });
+    }
+
+    // Normalize email
+    email = email.toLowerCase().trim();
 
     // Find project
     const project = await Project.findById(projectId);
 
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({
+        message: "Project not found",
+      });
     }
 
-    // Only project creator or system admin can add members
+    // Authorization: only system admin or project owner
     const isAdmin = req.user.role === "admin";
-    if (!isAdmin && project.createdBy.toString() !== req.user._id.toString()) {
+    const isOwner = project.createdBy.equals(req.user._id);
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({
         message: "Only project owner or admin can add members",
       });
     }
 
-    // Check user exists
-    const user = await User.findById(userId);
+    // Find user by email
+    const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User does not have an account on this platform",
+      });
     }
 
     // Prevent duplicates (including creator)
-    const alreadyMember =
-      project.createdBy.toString() === userId ||
-      project.members.some((memberId) => memberId.toString() === userId);
+    const isCreator = project.createdBy.equals(user._id);
+    const isAlreadyMember = project.members.some((memberId) =>
+      memberId.equals(user._id)
+    );
 
-    if (alreadyMember) {
+    if (isCreator || isAlreadyMember) {
       return res.status(400).json({
         message: "User is already a project member",
       });
     }
 
     // Add member
-    project.members.push(userId);
+    project.members.push(user._id);
     await project.save();
 
     res.status(200).json({
@@ -119,5 +137,33 @@ exports.addProjectMember = async (req, res) => {
     res.status(500).json({
       message: "Failed to add project member",
     });
+  }
+};
+
+exports.getProjectById = async (req, res, next) => {
+  try {
+    const project = await Project.findById(req.params.id)
+      .populate("createdBy", "name email")
+      .populate("members", "name email");
+
+    if (!project) {
+      res.status(404);
+      throw new Error("Project not found");
+    }
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = project.createdBy._id.equals(req.user._id);
+    const isMember = project.members.some((m) =>
+      m._id.equals(req.user._id)
+    );
+
+    if (!isAdmin && !isOwner && !isMember) {
+      res.status(403);
+      throw new Error("Access denied");
+    }
+
+    res.json(project);
+  } catch (err) {
+    next(err);
   }
 };

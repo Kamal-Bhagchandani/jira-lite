@@ -1,5 +1,5 @@
 const express = require("express");
-const { createProject, getMyProjects, addProjectMember } = require("../controllers/projectController");
+const { createProject, getMyProjects, addProjectMember, getProjectById } = require("../controllers/projectController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -9,6 +9,9 @@ router.post("/", protect, createProject);
 
 // Logged-in users get their projects
 router.get("/", protect, getMyProjects);
+
+// Get all details of a single project
+router.get("/:id", protect, getProjectById);
 
 // Project owner adds members
 router.post("/:projectId/members", protect, addProjectMember);
