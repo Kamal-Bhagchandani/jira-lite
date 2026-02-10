@@ -1,5 +1,6 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
+const ApiError = require("../utils/ApiError");
 
 // Logged in user Creates project
 exports.createProject = async (req, res) => {
@@ -70,73 +71,67 @@ exports.getMyProjects = async (req, res) => {
 };
 
 // Project owners add members to their project
-exports.addProjectMember = async (req, res) => {
+exports.addProjectMembers = async (req, res, next) => {
   try {
     const { projectId } = req.params;
-    let { email } = req.body;
+    let { members = [] } = req.body;
 
-    // Validate input
-    if (!email) {
-      return res.status(400).json({
-        message: "Member email is required",
-      });
+    if (!Array.isArray(members) || members.length === 0) {
+      throw new ApiError(400, "Members must be a non-empty array of emails");
     }
 
-    // Normalize email
-    email = email.toLowerCase().trim();
+    const normalizedEmails = [...new Set(
+      members.map(e => e.toLowerCase().trim())
+    )];
 
-    // Find project
     const project = await Project.findById(projectId);
-
     if (!project) {
-      return res.status(404).json({
-        message: "Project not found",
-      });
+      throw new ApiError(404, "Project not found");
     }
 
-    // Authorization: only system admin or project owner
     const isAdmin = req.user.role === "admin";
     const isOwner = project.createdBy.equals(req.user._id);
 
     if (!isAdmin && !isOwner) {
-      return res.status(403).json({
-        message: "Only project owner or admin can add members",
-      });
+      throw new ApiError(403, "Only project owner or admin can add members");
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    const users = await User.find({ email: { $in: normalizedEmails } });
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User does not have an account on this platform",
-      });
-    }
-
-    // Prevent duplicates (including creator)
-    const isCreator = project.createdBy.equals(user._id);
-    const isAlreadyMember = project.members.some((memberId) =>
-      memberId.equals(user._id)
+    const foundEmails = users.map(u => u.email);
+    const invalidEmails = normalizedEmails.filter(
+      email => !foundEmails.includes(email)
     );
 
-    if (isCreator || isAlreadyMember) {
-      return res.status(400).json({
-        message: "User is already a project member",
-      });
+    if (invalidEmails.length > 0) {
+      throw new ApiError(
+        400,
+        `These users are not registered: ${invalidEmails.join(", ")}`
+      );
     }
 
-    // Add member
-    project.members.push(user._id);
+    const newMemberIds = users
+      .filter(
+        u =>
+          !project.createdBy.equals(u._id) &&
+          !project.members.some(m => m.equals(u._id))
+      )
+      .map(u => u._id);
+
+    if (newMemberIds.length === 0) {
+      throw new ApiError(400, "No new members to add");
+    }
+
+    project.members.push(...newMemberIds);
     await project.save();
 
-    res.status(200).json({
-      message: "Member added successfully",
+    res.json({
+      message: "Project members added successfully",
+      addedCount: newMemberIds.length,
       project,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to add project member",
-    });
+  } catch (err) {
+    next(err);
   }
 };
 

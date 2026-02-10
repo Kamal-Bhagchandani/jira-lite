@@ -1,5 +1,5 @@
 const express = require("express");
-const { createProject, getMyProjects, addProjectMember, getProjectById } = require("../controllers/projectController");
+const { createProject, getMyProjects, addProjectMembers, getProjectById } = require("../controllers/projectController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -14,6 +14,6 @@ router.get("/", protect, getMyProjects);
 router.get("/:id", protect, getProjectById);
 
 // Project owner adds members
-router.post("/:projectId/members", protect, addProjectMember);
+router.post("/:projectId/members", protect, addProjectMembers);
 
 module.exports = router;
