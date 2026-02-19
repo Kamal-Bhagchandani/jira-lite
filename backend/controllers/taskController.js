@@ -122,23 +122,15 @@ exports.getTasksByProject = async (req, res) => {
     const project = await Project.findById(projectId);
 
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      throw new ApiError(404, "Project not found");
     }
 
-    // Authorization check
     const isAdmin = req.user.role === "admin";
+    const isOwner = project.createdBy.equals(req.user._id);
+    const isMember = project.members.some((m) => m.equals(req.user._id));
 
-    const isProjectCreator =
-      project.createdBy.toString() === req.user._id.toString();
-
-    const isProjectMember = project.members.some(
-      (memberId) => memberId.toString() === req.user._id.toString()
-    );
-
-    if (!isAdmin && !isProjectCreator && !isProjectMember) {
-      return res.status(403).json({
-        message: "You do not have access to this project",
-      });
+    if (!isAdmin && !isOwner && !isMember) {
+      throw new ApiError(403, "Access denied");
     }
 
     // Fetch tasks
@@ -148,7 +140,7 @@ exports.getTasksByProject = async (req, res) => {
 
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
