@@ -3,18 +3,16 @@ const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
 
 // Logged in user Creates project
-exports.createProject = async (req, res) => {
+exports.createProject = async (req, res, next) => {
   const { name, description, members = [] } = req.body;
 
   if (!name) {
-    return res.status(400).json({ message: "Project name is required" });
+    throw new ApiError(400, "Project name is required");
   }
 
   try {
     if (!Array.isArray(members)) {
-      return res
-        .status(400)
-        .json({ message: "Members must be an array of emails" });
+      throw new ApiError(400, "Members must be an array of emails");
     }
 
     // Normalize emails
@@ -23,20 +21,14 @@ exports.createProject = async (req, res) => {
     // Check duplicates FIRST
     const uniqueEmails = [...new Set(normalizedEmails)];
     if (uniqueEmails.length !== normalizedEmails.length) {
-      return res.status(400).json({
-        message: "Please enter unique email addresses",
-      });
+      throw new ApiError(400, "Please enter unique email addresses");
     }
 
     // Find users by email
     const users = await User.find({ email: { $in: uniqueEmails } });
 
     if (users.length !== uniqueEmails.length) {
-      return res
-        .status(400)
-        .json({
-          message: "One or more users do not have an account on this platform",
-        });
+      throw new ApiError(400,"One or more users do not have an account on this platform");
     }
 
     // Remove creator if included
@@ -53,12 +45,12 @@ exports.createProject = async (req, res) => {
 
     res.status(201).json(project);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // Get projects for logged-in user
-exports.getMyProjects = async (req, res) => {
+exports.getMyProjects = async (req, res, next) => {
   try {
     const projects = await Project.find({
       $or: [{ createdBy: req.user._id }, { members: req.user._id }],
@@ -66,7 +58,7 @@ exports.getMyProjects = async (req, res) => {
 
     res.json(projects);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -142,8 +134,7 @@ exports.getProjectById = async (req, res, next) => {
       .populate("members", "name email");
 
     if (!project) {
-      res.status(404);
-      throw new Error("Project not found");
+      throw new Error(404, "Project not found");
     }
 
     const isAdmin = req.user.role === "admin";
@@ -153,8 +144,7 @@ exports.getProjectById = async (req, res, next) => {
     );
 
     if (!isAdmin && !isOwner && !isMember) {
-      res.status(403);
-      throw new Error("Access denied");
+      throw new Error(403, "Access denied");
     }
 
     res.json(project);
