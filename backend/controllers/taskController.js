@@ -114,7 +114,7 @@ exports.updateTaskStatus = async (req, res) => {
 };
 
 // Get tasks by project
-exports.getTasksByProject = async (req, res) => {
+exports.getTasksByProject = async (req, res, next) => {
   try {
     const { projectId } = req.params;
 
