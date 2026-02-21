@@ -1,6 +1,7 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 const mongoose = require("mongoose");
+const ApiError = require("../utils/ApiError");
 
 // Create task (Admin or Project Member)
 exports.createTask = async (req, res) => {
@@ -13,16 +14,16 @@ exports.createTask = async (req, res) => {
   try {
     // Validate IDs
     if (!mongoose.isValidObjectId(project)) {
-      return res.status(400).json({ message: "Invalid project id" });
+      throw new ApiError(400, "Invalid project id");
     }
     if (assignedTo && !mongoose.isValidObjectId(assignedTo)) {
-      return res.status(400).json({ message: "Invalid assignedTo id" });
+      throw new ApiError(400, "Invalid assignedTo id");
     }
 
     const projectDoc = await Project.findById(project);
 
     if (!projectDoc) {
-      return res.status(404).json({ message: "Project not found" });
+      throw new ApiError(404, "Project not found");
     }
 
     // Authorization: only project owner, project members, or system admin can create tasks
@@ -31,9 +32,7 @@ exports.createTask = async (req, res) => {
     const isProjectMemberReq = projectDoc.members.some((memberId) => memberId.toString() === req.user._id.toString());
 
     if (!isAdmin && !isProjectOwner && !isProjectMemberReq) {
-      return res.status(403).json({
-        message: "You do not have permission to create tasks in this project",
-      });
+      throw new ApiError(403, "You do not have permission to create tasks in this project");
     }
 
     // If assignedTo provided, ensure they are a member or project creator
@@ -43,9 +42,7 @@ exports.createTask = async (req, res) => {
         projectDoc.members.some((memberId) => memberId.toString() === assignedTo);
 
       if (!isMember) {
-        return res.status(400).json({
-          message: "Task can only be assigned to project members",
-        });
+         throw new ApiError(400, "Task can only be assigned to project members");
       }
     }
 
@@ -59,22 +56,22 @@ exports.createTask = async (req, res) => {
 
     res.status(201).json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // Update task status
 exports.updateTaskStatus = async (req, res) => {
-  const { status } = req.body;
+  try {
+    const { status } = req.body;
 
   if (!["Todo", "In Progress", "Done"].includes(status)) {
-    return res.status(400).json({ message: "Invalid status" });
+    throw new ApiError(400, "Invalid status");
   }
 
-  try {
     const task = await Task.findById(req.params.id);
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      throw new ApiError(404, "Task not found");
     }
 
     const isAdmin = req.user.role === "admin";
@@ -84,7 +81,7 @@ exports.updateTaskStatus = async (req, res) => {
       const isAssignee = task.assignedTo.toString() === req.user._id.toString();
 
       if (!isAssignee && !isAdmin) {
-        return res.status(403).json({ message: "Only assignee or admin can update this task" });
+        throw new ApiError(403, "Only assignee or admin can update this task");
       }
     }
     // If task is unassigned, only project members or admin can update status
@@ -98,9 +95,7 @@ exports.updateTaskStatus = async (req, res) => {
       const isProjectCreator = project.createdBy.toString() === req.user._id.toString();
 
       if (!isProjectMember && !isProjectCreator && !isAdmin) {
-        return res.status(403).json({
-          message: "Only project members or admin can update this task",
-        });
+        throw new ApiError(403, "Only project members or admin can update this task");
       }
     }
 
@@ -109,7 +104,7 @@ exports.updateTaskStatus = async (req, res) => {
 
     res.json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -146,25 +141,23 @@ exports.getTasksByProject = async (req, res, next) => {
 
 // Reassign task
 exports.updateTaskAssignee = async (req, res) => {
-  const { assignedTo } = req.body;
+  try {
+    const { assignedTo } = req.body;
 
   if (!assignedTo) {
-    return res.status(400).json({
-      message: "assignedTo is required",
-    });
+    throw new ApiError(400, "assignedTo is required");
   }
 
-  try {
     // Find task
     const task = await Task.findById(req.params.id);
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      throw new ApiError(404, "Task not found");
     }
 
     // Find project
     const project = await Project.findById(task.project);
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      throw new ApiError(404, "Project not found");
     }
 
     // Only project creator or admin can reassign
@@ -172,9 +165,7 @@ exports.updateTaskAssignee = async (req, res) => {
     const isProjectCreator = project.createdBy.toString() === req.user._id.toString();
 
     if (!isAdmin && !isProjectCreator) {
-      return res.status(403).json({
-        message: "Only project owner or admin can reassign tasks",
-      });
+      throw new ApiError(403, "Only project owner or admin can reassign tasks");
     }
 
     // Validate new assignee is project member or creator
@@ -183,9 +174,7 @@ exports.updateTaskAssignee = async (req, res) => {
       project.members.some((memberId) => memberId.toString() === assignedTo);
 
     if (!isValidAssignee) {
-      return res.status(400).json({
-        message: "Task can only be assigned to project members",
-      });
+      throw new ApiError(400, "Task can only be assigned to project members");
     }
 
     // Update assignee
@@ -194,6 +183,6 @@ exports.updateTaskAssignee = async (req, res) => {
 
     res.json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
