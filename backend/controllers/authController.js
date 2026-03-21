@@ -1,15 +1,17 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const ApiError = require("../utils/ApiError");
 
 // Register
-exports.registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
-
+exports.registerUser = async (req, res, next) => {
   try {
+    const { name, email, password } = req.body;
+
     const userExists = await User.findOne({ email });
-    if (userExists)
-      return res.status(400).json({ message: "User already exists" });
+    if (userExists) {
+      throw new ApiError(400, "User already exists");
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -22,22 +24,24 @@ exports.registerUser = async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // Login
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
-
+exports.loginUser = async (req, res, next) => {
   try {
+    const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) {
+      throw new ApiError(400, "Invalid credentials");
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      throw new ApiError(400, "Invalid credentials");
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -55,6 +59,6 @@ exports.loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
