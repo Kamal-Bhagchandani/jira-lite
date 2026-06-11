@@ -1,6 +1,14 @@
+import { useNavigate } from "react-router-dom";
+
 const ProjectCard = ({ project }) => {
-  return (
-    <div className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition">
+	
+  const navigate = useNavigate();
+
+	return (
+    <div
+      onClick={() => navigate(`/projects/${project._id}`)}
+      className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition cursor-pointer"
+			>
       {/* Status */}
       <div className="flex justify-between items-center mb-4">
         <span className="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-xs font-semibold">
