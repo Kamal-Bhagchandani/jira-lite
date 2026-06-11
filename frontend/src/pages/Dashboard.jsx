@@ -1,19 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { getProjects } from "../api/projects";
 import MainLayout from "../components/layout/MainLayout";
+import ProjectCard from "../components/dashboard/ProjectCard";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -32,39 +24,45 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-100 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Welcome, {user?.name}</h1>
+      <div className="space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">
+            Project Dashboard
+          </h1>
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
+          <p className="text-gray-500 mt-2">
+            Manage and track your projects.
+          </p>
         </div>
 
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
+        {/* Loading State */}
+        {loading && (
+          <p className="text-gray-500">
+            Loading projects...
+          </p>
+        )}
 
-          {loading && <p>Loading projects...</p>}
+        {/* Empty State */}
+        {!loading && projects.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-8">
+            <p className="text-gray-500">
+              No projects found.
+            </p>
+          </div>
+        )}
 
-          {!loading && projects.length === 0 && (
-            <p className="text-gray-500">No projects found.</p>
-          )}
-
-          <ul className="space-y-3">
+        {/* Project Grid */}
+        {!loading && projects.length > 0 && (
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <li
+              <ProjectCard
                 key={project._id}
-                className="border p-4 rounded hover:bg-gray-50 cursor-pointer"
-              >
-                <h3 className="font-semibold">{project.name}</h3>
-                <p className="text-sm text-gray-600">{project.description}</p>
-              </li>
+                project={project}
+              />
             ))}
-          </ul>
-        </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
