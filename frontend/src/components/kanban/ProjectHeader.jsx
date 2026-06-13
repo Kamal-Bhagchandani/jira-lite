@@ -1,4 +1,4 @@
-const ProjectHeader = ({ project }) => {
+const ProjectHeader = ({ project, onNewTask }) => {
   return (
     <div className="flex items-center justify-between mb-8">
 
@@ -13,6 +13,7 @@ const ProjectHeader = ({ project }) => {
       </div>
 
       <button
+        onClick={onNewTask}
         className="
           bg-indigo-600
           hover:bg-indigo-700

@@ -55,7 +55,7 @@ exports.createTask = async (req, res, next) => {
       title,
       description,
       project,
-      assignedTo,
+      assignedTo: assignedTo || undefined,
       priority,
       dueDate,
       createdBy: req.user._id,
