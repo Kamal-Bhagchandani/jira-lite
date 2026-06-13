@@ -134,7 +134,7 @@ exports.getProjectById = async (req, res, next) => {
       .populate("members", "name email");
 
     if (!project) {
-      throw new Error(404, "Project not found");
+      throw new ApiError(404, "Project not found");
     }
 
     const isAdmin = req.user.role === "admin";
@@ -144,7 +144,7 @@ exports.getProjectById = async (req, res, next) => {
     );
 
     if (!isAdmin && !isOwner && !isMember) {
-      throw new Error(403, "Access denied");
+      throw new ApiError(403, "Access denied");
     }
 
     res.json(project);

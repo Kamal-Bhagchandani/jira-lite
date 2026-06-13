@@ -6,10 +6,16 @@ const ApiError = require("../utils/ApiError");
 // Create task (Admin or Project Member)
 exports.createTask = async (req, res, next) => {
   try {
-    const { title, description, project, assignedTo } = req.body;
+    const { title, description, project, assignedTo, priority, dueDate } = req.body;
 
     if (!title || !project) {
       throw new ApiError(400, "Title and project are required");
+    }
+    if (priority && !["Low", "Medium", "High"].includes(priority)) {
+      throw new ApiError(400, "Invalid priority");
+    }
+    if (dueDate && Number.isNaN(new Date(dueDate).getTime())) {
+      throw new ApiError(400, "Invalid dueDate");
     }
     // Validate IDs
     if (!mongoose.isValidObjectId(project)) {
@@ -50,6 +56,8 @@ exports.createTask = async (req, res, next) => {
       description,
       project,
       assignedTo,
+      priority,
+      dueDate,
       createdBy: req.user._id,
     });
 
