@@ -4,14 +4,13 @@ const mongoose = require("mongoose");
 const ApiError = require("../utils/ApiError");
 
 // Create task (Admin or Project Member)
-exports.createTask = async (req, res) => {
-  const { title, description, project, assignedTo } = req.body;
-
-  if (!title || !project) {
-    return res.status(400).json({ message: "Title and project are required" });
-  }
-
+exports.createTask = async (req, res, next) => {
   try {
+    const { title, description, project, assignedTo } = req.body;
+
+    if (!title || !project) {
+      throw new ApiError(400, "Title and project are required");
+    }
     // Validate IDs
     if (!mongoose.isValidObjectId(project)) {
       throw new ApiError(400, "Invalid project id");
@@ -61,7 +60,7 @@ exports.createTask = async (req, res) => {
 };
 
 // Update task status
-exports.updateTaskStatus = async (req, res) => {
+exports.updateTaskStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
 
@@ -140,7 +139,7 @@ exports.getTasksByProject = async (req, res, next) => {
 };
 
 // Reassign task
-exports.updateTaskAssignee = async (req, res) => {
+exports.updateTaskAssignee = async (req, res, next) => {
   try {
     const { assignedTo } = req.body;
 
