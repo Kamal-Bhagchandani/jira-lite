@@ -33,7 +33,7 @@ const ProjectCard = ({ project }) => {
         </span>
 
         <span>
-          Created by you
+          Created by {project.createdBy.name}
         </span>
       </div>
     </div>

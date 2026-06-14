@@ -27,8 +27,17 @@ exports.createProject = async (req, res, next) => {
     // Find users by email
     const users = await User.find({ email: { $in: uniqueEmails } });
 
-    if (users.length !== uniqueEmails.length) {
-      throw new ApiError(400,"One or more users do not have an account on this platform");
+    const foundEmails = users.map((u) => u.email);
+
+    const invalidEmails = uniqueEmails.filter(
+      (email) => !foundEmails.includes(email)
+    );
+
+    if (invalidEmails.length > 0) {
+      throw new ApiError(
+        400,
+        `These users are not registered: ${invalidEmails.join(", ")}`
+      );
     }
 
     // Remove creator if included

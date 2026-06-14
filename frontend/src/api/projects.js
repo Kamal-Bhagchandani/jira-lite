@@ -9,3 +9,8 @@ export const getProjectById = async (id) => {
   const res = await api.get(`/projects/${id}`);
   return res.data;
 };
+
+export const createProject = async (projectData) => {
+  const res = await api.post("/projects", projectData);
+  return res.data;
+};
