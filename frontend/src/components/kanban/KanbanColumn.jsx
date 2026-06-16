@@ -1,6 +1,6 @@
 import TaskCard from "./TaskCard";
 
-const KanbanColumn = ({ title, tasks }) => {
+const KanbanColumn = ({ title, tasks, onTaskClick }) => {
   return (
     <div className="bg-gray-100 rounded-2xl p-4">
       <div className="flex justify-between mb-4">
@@ -18,6 +18,7 @@ const KanbanColumn = ({ title, tasks }) => {
           <TaskCard
             key={task._id}
             task={task}
+            onClick={() => onTaskClick(task)}
           />
         ))}
       </div>

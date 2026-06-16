@@ -6,8 +6,9 @@ import ProjectHeader from "../components/kanban/ProjectHeader";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 
 import { getProjectById } from "../api/projects";
-import { getTasksByProject, createTask } from "../api/tasks";
+import { getTasksByProject, createTask, updateTask } from "../api/tasks";
 import CreateTaskModal from "../components/modals/CreateTaskModal";
+import TaskDetailsModal from "../components/modals/TaskDetailsModal";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -15,6 +16,8 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,18 +56,69 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleSaveTask = async (updatedTaskData) => {
+    try {
+      const updatedTask = await updateTask(
+        updatedTaskData._id,
+        updatedTaskData
+      );
+
+      setTasks((prev) =>
+        prev.map((task) => {
+          if (task._id !== updatedTask._id) {
+            return task;
+          }
+
+          return {
+            ...task,
+            ...updatedTask,
+            assignedTo:
+              updatedTask.assignedTo === ""
+                ? null
+                : (
+                    [project.createdBy, ...project.members]
+                      .find(
+                        (member) =>
+                          member._id === updatedTask.assignedTo
+                      ) || null
+                  ),
+          };
+        })
+      );
+
+      setSelectedTask(updatedTask);
+
+      setShowTaskDetails(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <MainLayout>
-      <ProjectHeader
-        project={project}
-        onNewTask={() => setShowModal(true)}
+      <ProjectHeader project={project} onNewTask={() => setShowModal(true)} />
+      <KanbanBoard
+        tasks={tasks}
+        onTaskClick={(task) => {
+          setSelectedTask(task);
+          setShowTaskDetails(true);
+        }}
       />
-      <KanbanBoard tasks={tasks} />
       <CreateTaskModal
         show={showModal}
         onClose={() => setShowModal(false)}
         onCreate={handleCreateTask}
         project={project}
+      />
+      <TaskDetailsModal
+        show={showTaskDetails}
+        task={selectedTask}
+        project={project}
+        onClose={() => {
+          setShowTaskDetails(false);
+          setSelectedTask(null);
+        }}
+        onSave={handleSaveTask}
       />
     </MainLayout>
   );

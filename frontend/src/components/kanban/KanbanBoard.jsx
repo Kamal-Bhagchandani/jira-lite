@@ -1,6 +1,6 @@
 import KanbanColumn from "./KanbanColumn";
 
-const KanbanBoard = ({ tasks }) => {
+const KanbanBoard = ({ tasks, onTaskClick }) => {
   const todoTasks = tasks.filter(
     (task) => task.status === "Todo"
   );
@@ -19,16 +19,19 @@ const KanbanBoard = ({ tasks }) => {
       <KanbanColumn
         title="Todo"
         tasks={todoTasks}
+        onTaskClick={onTaskClick}
       />
 
       <KanbanColumn
         title="In Progress"
         tasks={progressTasks}
+        onTaskClick={onTaskClick}
       />
 
       <KanbanColumn
         title="Done"
         tasks={doneTasks}
+        onTaskClick={onTaskClick}
       />
 
     </div>

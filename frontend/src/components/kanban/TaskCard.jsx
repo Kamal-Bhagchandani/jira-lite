@@ -1,7 +1,9 @@
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, onClick }) => {
   return (
-    <div className="bg-white rounded-xl p-4 shadow">
-
+    <div
+      onClick={() => onClick(task)}
+      className="bg-white rounded-xl p-4 shadow cursor-pointer hover:shadow-lg transition"
+    >
       <div className="flex justify-between mb-3">
 
         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">

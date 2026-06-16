@@ -6,7 +6,8 @@ const ApiError = require("../utils/ApiError");
 // Create task (Admin or Project Member)
 exports.createTask = async (req, res, next) => {
   try {
-    const { title, description, project, assignedTo, priority, dueDate } = req.body;
+    const { title, description, project, assignedTo, priority, dueDate } =
+      req.body;
 
     if (!title || !project) {
       throw new ApiError(400, "Title and project are required");
@@ -33,21 +34,28 @@ exports.createTask = async (req, res, next) => {
 
     // Authorization: only project owner, project members, or system admin can create tasks
     const isAdmin = req.user.role === "admin";
-    const isProjectOwner = projectDoc.createdBy.toString() === req.user._id.toString();
-    const isProjectMemberReq = projectDoc.members.some((memberId) => memberId.toString() === req.user._id.toString());
+    const isProjectOwner = projectDoc.createdBy.equals(req.user._id);
+    const isProjectMemberReq = projectDoc.members.some((memberId) =>
+      memberId.equals(req.user._id),
+    );
 
     if (!isAdmin && !isProjectOwner && !isProjectMemberReq) {
-      throw new ApiError(403, "You do not have permission to create tasks in this project");
+      throw new ApiError(
+        403,
+        "You do not have permission to create tasks in this project",
+      );
     }
 
     // If assignedTo provided, ensure they are a member or project creator
     if (assignedTo) {
       const isMember =
         projectDoc.createdBy.toString() === assignedTo ||
-        projectDoc.members.some((memberId) => memberId.toString() === assignedTo);
+        projectDoc.members.some(
+          (memberId) => memberId.toString() === assignedTo,
+        );
 
       if (!isMember) {
-         throw new ApiError(400, "Task can only be assigned to project members");
+        throw new ApiError(400, "Task can only be assigned to project members");
       }
     }
 
@@ -67,51 +75,93 @@ exports.createTask = async (req, res, next) => {
   }
 };
 
-// Update task status
-exports.updateTaskStatus = async (req, res, next) => {
+exports.updateTask = async (req, res, next) => {
   try {
-    const { status } = req.body;
-
-  if (!["Todo", "In Progress", "Done"].includes(status)) {
-    throw new ApiError(400, "Invalid status");
-  }
+    const { title, description, status, assignedTo, priority, dueDate } =
+      req.body;
 
     const task = await Task.findById(req.params.id);
+
     if (!task) {
       throw new ApiError(404, "Task not found");
     }
 
+    const project = await Project.findById(task.project);
+
     const isAdmin = req.user.role === "admin";
+    const isOwner = project.createdBy.equals(req.user._id);
+    const isCreator = task.createdBy.equals(req.user._id);
 
-    // If task is assigned, only assignee or admin can update status
-    if (task.assignedTo) {
-      const isAssignee = task.assignedTo.toString() === req.user._id.toString();
+    const isAssignee = task.assignedTo && task.assignedTo.equals(req.user._id);
 
-      if (!isAssignee && !isAdmin) {
-        throw new ApiError(403, "Only assignee or admin can update this task");
-      }
-    }
-    // If task is unassigned, only project members or admin can update status
-    else {
-      const project = await Project.findById(task.project);
+    const wantsFullEdit =
+      title !== undefined ||
+      description !== undefined ||
+      priority !== undefined ||
+      dueDate !== undefined ||
+      assignedTo !== undefined;
 
-      const isProjectMember = project.members.some(
-        (memberId) => memberId.toString() === req.user._id.toString(),
-      );
-
-      const isProjectCreator = project.createdBy.toString() === req.user._id.toString();
-
-      if (!isProjectMember && !isProjectCreator && !isAdmin) {
-        throw new ApiError(403, "Only project members or admin can update this task");
+    if (wantsFullEdit) {
+      if (!isAdmin && !isOwner && !isCreator) {
+        throw new ApiError(
+          403,
+          "Only project owner, task creator or admin can edit task details",
+        );
       }
     }
 
-    task.status = status;
+    if (status !== undefined) {
+      if (!isAdmin && !isOwner && !isCreator && !isAssignee) {
+        throw new ApiError(403, "You are not allowed to update task status");
+      }
+
+      if (!["Todo", "In Progress", "Done"].includes(status)) {
+        throw new ApiError(400, "Invalid status");
+      }
+
+      task.status = status;
+    }
+
+    if (title !== undefined) task.title = title;
+
+    if (description !== undefined) task.description = description;
+
+    if (priority !== undefined) {
+      if (!["Low", "Medium", "High"].includes(priority)) {
+        throw new ApiError(400, "Invalid priority");
+      }
+
+      task.priority = priority;
+    }
+
+    if (assignedTo !== undefined) {
+      if (assignedTo === "") {
+        task.assignedTo = undefined;
+      } else {
+        const isValidAssignee =
+          project.createdBy.equals(assignedTo) ||
+          project.members.some((memberId) => memberId.equals(assignedTo));
+
+        if (!isValidAssignee) {
+          throw new ApiError(
+            400,
+            "Task can only be assigned to project members",
+          );
+        }
+
+        task.assignedTo = assignedTo;
+      }
+    }
+
+    if (dueDate !== undefined) {
+      task.dueDate = dueDate || null;
+    }
+
     await task.save();
 
     res.json(task);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -141,54 +191,6 @@ exports.getTasksByProject = async (req, res, next) => {
       .populate("createdBy", "name email");
 
     res.json(tasks);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Reassign task
-exports.updateTaskAssignee = async (req, res, next) => {
-  try {
-    const { assignedTo } = req.body;
-
-  if (!assignedTo) {
-    throw new ApiError(400, "assignedTo is required");
-  }
-
-    // Find task
-    const task = await Task.findById(req.params.id);
-    if (!task) {
-      throw new ApiError(404, "Task not found");
-    }
-
-    // Find project
-    const project = await Project.findById(task.project);
-    if (!project) {
-      throw new ApiError(404, "Project not found");
-    }
-
-    // Only project creator or admin can reassign
-    const isAdmin = req.user.role === "admin";
-    const isProjectCreator = project.createdBy.toString() === req.user._id.toString();
-
-    if (!isAdmin && !isProjectCreator) {
-      throw new ApiError(403, "Only project owner or admin can reassign tasks");
-    }
-
-    // Validate new assignee is project member or creator
-    const isValidAssignee =
-      project.createdBy.toString() === assignedTo ||
-      project.members.some((memberId) => memberId.toString() === assignedTo);
-
-    if (!isValidAssignee) {
-      throw new ApiError(400, "Task can only be assigned to project members");
-    }
-
-    // Update assignee
-    task.assignedTo = assignedTo;
-    await task.save();
-
-    res.json(task);
   } catch (error) {
     next(error);
   }
