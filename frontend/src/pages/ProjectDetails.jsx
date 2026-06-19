@@ -50,7 +50,23 @@ const ProjectDetails = () => {
         project: id,
       });
 
-      setTasks((prev) => [...prev, newTask]);
+      const allMembers = [
+        project.createdBy,
+        ...project.members
+      ];
+
+      const taskWithObjects = {
+        ...newTask,
+        assignedTo:
+          allMembers.find(
+            member =>
+              member._id === newTask.assignedTo
+          ) || null,
+
+        createdBy: project.createdBy
+      };
+
+      setTasks(prev => [...prev, taskWithObjects]);
     } catch (err) {
       console.error(err);
     }
@@ -82,6 +98,7 @@ const ProjectDetails = () => {
                           member._id === updatedTask.assignedTo
                       ) || null
                   ),
+            createdBy: project.createdBy
           };
         })
       );

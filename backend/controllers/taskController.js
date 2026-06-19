@@ -6,7 +6,7 @@ const ApiError = require("../utils/ApiError");
 // Create task (Admin or Project Member)
 exports.createTask = async (req, res, next) => {
   try {
-    const { title, description, project, assignedTo, priority, dueDate } =
+    const { title, description, project, assignedTo, priority, status, dueDate } =
       req.body;
 
     if (!title || !project) {
@@ -14,6 +14,9 @@ exports.createTask = async (req, res, next) => {
     }
     if (priority && !["Low", "Medium", "High"].includes(priority)) {
       throw new ApiError(400, "Invalid priority");
+    }
+    if (status && !["Todo", "In Progress", "Done"].includes(status)) {
+      throw new ApiError(400, "Invalid status");
     }
     if (dueDate && Number.isNaN(new Date(dueDate).getTime())) {
       throw new ApiError(400, "Invalid dueDate");
@@ -65,6 +68,7 @@ exports.createTask = async (req, res, next) => {
       project,
       assignedTo: assignedTo || undefined,
       priority,
+      status,
       dueDate,
       createdBy: req.user._id,
     });
