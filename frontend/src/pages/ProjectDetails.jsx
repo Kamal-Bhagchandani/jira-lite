@@ -6,7 +6,7 @@ import ProjectHeader from "../components/kanban/ProjectHeader";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 
 import { getProjectById } from "../api/projects";
-import { getTasksByProject, createTask, updateTask } from "../api/tasks";
+import { getTasksByProject, createTask, updateTask, deleteTask } from "../api/tasks";
 import CreateTaskModal from "../components/modals/CreateTaskModal";
 import TaskDetailsModal from "../components/modals/TaskDetailsModal";
 
@@ -94,6 +94,25 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+
+      setTasks((prev) =>
+        prev.filter(
+          (task) => task._id !== taskId
+        )
+      );
+
+      setSelectedTask(null);
+
+      setShowTaskDetails(false);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <MainLayout>
       <ProjectHeader project={project} onNewTask={() => setShowModal(true)} />
@@ -119,6 +138,9 @@ const ProjectDetails = () => {
           setSelectedTask(null);
         }}
         onSave={handleSaveTask}
+        onDelete={() =>
+          handleDeleteTask(selectedTask._id)
+        }
       />
     </MainLayout>
   );

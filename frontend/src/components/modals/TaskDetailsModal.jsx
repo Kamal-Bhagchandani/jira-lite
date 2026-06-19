@@ -405,7 +405,15 @@ const TaskDetailsModal = ({
         {/* Footer */}
         <div className="border-t px-8 py-1 flex justify-between bg-white sticky bottom-0 z-10">
           <button
-            onClick={onDelete}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Delete this task permanently?"
+                )
+              ) {
+                onDelete();
+              }
+            }}
             className="
               text-red-600
               hover:text-red-700

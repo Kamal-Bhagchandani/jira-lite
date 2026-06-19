@@ -195,3 +195,30 @@ exports.getTasksByProject = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteTask = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      throw new ApiError(404, "Task not found");
+    }
+
+    const project = await Project.findById(task.project);
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = project.createdBy.equals(req.user._id);
+
+    if (!isAdmin && !isOwner) {
+      throw new ApiError(403, "Only project owner or admin can delete tasks");
+    }
+
+    await task.deleteOne();
+
+    res.json({
+      message: "Task deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
