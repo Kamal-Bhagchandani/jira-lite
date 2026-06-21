@@ -1,5 +1,6 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
+const Task = require("../models/Task");
 const ApiError = require("../utils/ApiError");
 
 // Logged in user Creates project
@@ -157,6 +158,38 @@ exports.getProjectById = async (req, res, next) => {
     }
 
     res.json(project);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteProject = async (req, res, next) => {
+  try {
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      throw new ApiError(404, "Project not found");
+    }
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = project.createdBy.equals(req.user._id);
+
+    if (!isAdmin && !isOwner) {
+      throw new ApiError(
+        403,
+        "Only project owner or admin can delete projects"
+      );
+    }
+
+    await Task.deleteMany({
+      project: project._id,
+    });
+
+    await project.deleteOne();
+
+    res.json({
+      message: "Project deleted successfully",
+    });
   } catch (err) {
     next(err);
   }

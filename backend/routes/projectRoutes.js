@@ -1,5 +1,5 @@
 const express = require("express");
-const { createProject, getMyProjects, addProjectMembers, getProjectById } = require("../controllers/projectController");
+const { createProject, getMyProjects, addProjectMembers, getProjectById, deleteProject } = require("../controllers/projectController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -15,5 +15,8 @@ router.get("/:id", protect, getProjectById);
 
 // Project owner adds members
 router.post("/:projectId/members", protect, addProjectMembers);
+
+// Project owner can Delete the Project
+router.delete("/:id", protect, deleteProject);
 
 module.exports = router;

@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import MainLayout from "../components/layout/MainLayout";
 import ProjectHeader from "../components/kanban/ProjectHeader";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 
-import { getProjectById } from "../api/projects";
+import { getProjectById, deleteProject } from "../api/projects";
 import { getTasksByProject, createTask, updateTask, deleteTask } from "../api/tasks";
 import CreateTaskModal from "../components/modals/CreateTaskModal";
 import TaskDetailsModal from "../components/modals/TaskDetailsModal";
 
 const ProjectDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -42,6 +43,16 @@ const ProjectDetails = () => {
       </MainLayout>
     );
   }
+
+  const handleDeleteProject = async () => {
+    try {
+      await deleteProject(id);
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleCreateTask = async (taskData) => {
     try {
@@ -132,7 +143,11 @@ const ProjectDetails = () => {
 
   return (
     <MainLayout>
-      <ProjectHeader project={project} onNewTask={() => setShowModal(true)} />
+      <ProjectHeader
+        project={project}
+        onNewTask={() => setShowModal(true)}
+        onDeleteProject={handleDeleteProject}
+      />
       <KanbanBoard
         tasks={tasks}
         onTaskClick={(task) => {
