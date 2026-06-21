@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 
-const ProjectHeader = ({ project, onNewTask, onDeleteProject }) => {
+const ProjectHeader = ({ project, onNewTask, onDeleteProject, onAddMembers }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -32,10 +32,26 @@ const ProjectHeader = ({ project, onNewTask, onDeleteProject }) => {
 
       {/* Left */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {project.name}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {project.name}
+          </h1>
 
+          <button
+            onClick={onAddMembers}
+            className="
+              border
+              mx-1
+              px-2
+              py-1
+              rounded-xl
+              hover:bg-gray-200
+            "
+          >
+            👤+
+          </button>
+        </div>
+        
         <p className="mt-2 text-gray-500">
           {project.description}
         </p>

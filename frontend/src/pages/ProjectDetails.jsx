@@ -5,10 +5,11 @@ import MainLayout from "../components/layout/MainLayout";
 import ProjectHeader from "../components/kanban/ProjectHeader";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 
-import { getProjectById, deleteProject } from "../api/projects";
+import { getProjectById, addProjectMembers, deleteProject } from "../api/projects";
 import { getTasksByProject, createTask, updateTask, deleteTask } from "../api/tasks";
 import CreateTaskModal from "../components/modals/CreateTaskModal";
 import TaskDetailsModal from "../components/modals/TaskDetailsModal";
+import AddMembersModal from "../components/modals/AddMembersModal";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -19,6 +20,7 @@ const ProjectDetails = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -43,6 +45,14 @@ const ProjectDetails = () => {
       </MainLayout>
     );
   }
+
+  const handleAddMembers = async (emails) => {
+    const data = await addProjectMembers(id, emails);
+
+    setProject(data.project);
+
+    return data;
+  };
 
   const handleDeleteProject = async () => {
     try {
@@ -147,6 +157,7 @@ const ProjectDetails = () => {
         project={project}
         onNewTask={() => setShowModal(true)}
         onDeleteProject={handleDeleteProject}
+        onAddMembers={() => setShowMembersModal(true)}
       />
       <KanbanBoard
         tasks={tasks}
@@ -173,6 +184,11 @@ const ProjectDetails = () => {
         onDelete={() =>
           handleDeleteTask(selectedTask._id)
         }
+      />
+      <AddMembersModal
+        show={showMembersModal}
+        onClose={() => setShowMembersModal(false)}
+        onAdd={handleAddMembers}
       />
     </MainLayout>
   );

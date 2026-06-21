@@ -15,6 +15,17 @@ export const createProject = async (projectData) => {
   return res.data;
 };
 
+export const addProjectMembers = async (projectId, members) => {
+  const res = await api.post(
+    `/projects/${projectId}/members`,
+    {
+      members,
+    }
+  );
+
+  return res.data;
+};
+
 export const deleteProject = async (id) => {
   const res = await api.delete(`/projects/${id}`);
 
