@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaPen, FaCheck } from "react-icons/fa";
 
 const TaskDetailsModal = ({
   show,
@@ -64,13 +65,15 @@ const TaskDetailsModal = ({
                     <button
                       onClick={() => setEditingTitle(true)}
                       className="
+                        mx-5
                         opacity-0
                         group-hover:opacity-100
                         transition
                         text-gray-400
+                        hover:cursor-pointer
                       "
                     >
-                      ✏️
+                      <FaPen />
                     </button>
                   </>
                 ) : (
@@ -85,7 +88,7 @@ const TaskDetailsModal = ({
                       onClick={() => setEditingTitle(false)}
                       className="text-green-600"
                     >
-                      ✔
+                      <FaCheck />
                     </button>
                   </>
                 )}
@@ -120,9 +123,9 @@ const TaskDetailsModal = ({
 
                   <button
                     onClick={() => setEditingDescription(true)}
-                    className="opacity-0 group-hover:opacity-100 transition text-gray-400"
+                    className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:cursor-pointer"
                   >
-                    ✏️
+                    <FaPen />
                   </button>
                 </div>
               ) : (
@@ -138,7 +141,7 @@ const TaskDetailsModal = ({
                     onClick={() => setEditingDescription(false)}
                     className="text-green-600"
                   >
-                    ✔
+                    <FaCheck />
                   </button>
                 </div>
               )}
@@ -192,9 +195,10 @@ const TaskDetailsModal = ({
                       group-hover:opacity-100
                       transition
                       text-gray-400
+                      hover:cursor-pointer
                     "
                   >
-                    ✏️
+                    <FaPen />
                   </button>
                 </div>
               ) : (
@@ -213,7 +217,7 @@ const TaskDetailsModal = ({
                     onClick={() => setEditingStatus(false)}
                     className="text-green-600"
                   >
-                    ✔
+                    <FaCheck />
                   </button>
                 </div>
               )}
@@ -241,9 +245,10 @@ const TaskDetailsModal = ({
                       group-hover:opacity-100
                       transition
                       text-gray-400
+                      hover:cursor-pointer
                     "
                   >
-                    ✏️
+                    <FaPen />
                   </button>
                 </div>
               ) : (
@@ -262,7 +267,7 @@ const TaskDetailsModal = ({
                     onClick={() => setEditingPriority(false)}
                     className="text-green-600"
                   >
-                    ✔
+                    <FaCheck />
                   </button>
                 </div>
               )}
@@ -286,9 +291,9 @@ const TaskDetailsModal = ({
 
                   <button
                     onClick={() => setEditingAssignee(true)}
-                    className="opacity-0 group-hover:opacity-100 transition text-gray-400"
+                    className="opacity-0 group-hover:opacity-100 transition text-gray-400 hover:cursor-pointer"
                   >
-                    ✏️
+                    <FaPen />
                   </button>
                 </div>
               ) : (
@@ -315,7 +320,7 @@ const TaskDetailsModal = ({
                     onClick={() => setEditingAssignee(false)}
                     className="text-green-600"
                   >
-                    ✔
+                    <FaCheck />
                   </button>
                 </div>
               )}
@@ -344,9 +349,10 @@ const TaskDetailsModal = ({
                       group-hover:opacity-100
                       transition
                       text-gray-400
+                      hover:cursor-pointer
                     "
                   >
-                    ✏️
+                    <FaPen />
                   </button>
                 </div>
               ) : (
@@ -368,7 +374,7 @@ const TaskDetailsModal = ({
                     onClick={() => setEditingDueDate(false)}
                     className="text-green-600"
                   >
-                    ✔
+                    <FaCheck />
                   </button>
                 </div>
               )}

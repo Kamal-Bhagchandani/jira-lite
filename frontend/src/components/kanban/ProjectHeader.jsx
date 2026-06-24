@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { FaUserPlus } from "react-icons/fa";
 
 const ProjectHeader = ({ project, onNewTask, onDeleteProject, onAddMembers }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -46,9 +47,10 @@ const ProjectHeader = ({ project, onNewTask, onDeleteProject, onAddMembers }) =>
               py-1
               rounded-xl
               hover:bg-gray-200
+              hover:cursor-pointer
             "
           >
-            👤+
+            <FaUserPlus />
           </button>
         </div>
         
