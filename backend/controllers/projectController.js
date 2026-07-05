@@ -53,9 +53,7 @@ exports.createProject = async (req, res, next) => {
       members: memberIds,
     });
 
-    const user = await User.findById(project.createdBy).select("name");
-
-    project.createdBy = user;
+    project.createdBy = req.user;
 
     res.status(201).json(project);
   } catch (error) {
