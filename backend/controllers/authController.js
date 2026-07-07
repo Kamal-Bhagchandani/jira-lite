@@ -2,11 +2,21 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ApiError = require("../utils/ApiError");
+const { emailRegex } = require("../utils/validators");
+const authResponse = require("../utils/authResponse");
 
 // Register
 exports.registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      throw new ApiError(400, "Name, email and password are required");
+    }
+
+    if (!emailRegex.test(email)) {
+        throw new ApiError(400, "Invalid email address");
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -22,7 +32,7 @@ exports.registerUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json(authResponse(user));
   } catch (error) {
     next(error);
   }
@@ -32,6 +42,14 @@ exports.registerUser = async (req, res, next) => {
 exports.loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      throw new ApiError(400, "Email and password are required");
+    }
+
+    if (!emailRegex.test(email)) {
+      throw new ApiError(400, "Invalid email address");
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -43,21 +61,7 @@ exports.loginUser = async (req, res, next) => {
       throw new ApiError(400, "Invalid credentials");
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    res.json(authResponse(user));
   } catch (error) {
     next(error);
   }
