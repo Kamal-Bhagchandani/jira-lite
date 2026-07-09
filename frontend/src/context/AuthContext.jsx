@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import api from "../api/axios";
+import { login as loginApi, register as registerApi } from "../api/auth";
 
 const AuthContext = createContext();
 
@@ -14,29 +14,27 @@ export const AuthProvider = ({ children }) => {
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
     }
+
     setLoading(false);
   }, []);
 
+  const authenticate = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+  };
+
   const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
+    const data = await loginApi(email, password);
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-
-    setUser(res.data.user);
+    authenticate(data);
   };
 
   const register = async (name, email, password) => {
-    const res = await api.post("/auth/register", {
-      name,
-      email,
-      password,
-    });
+    const data = await registerApi({ name, email, password });
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-
-    setUser(res.data.user);
+    authenticate(data);
   };
 
   const logout = () => {
