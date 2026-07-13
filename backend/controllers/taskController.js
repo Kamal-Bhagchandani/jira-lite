@@ -200,6 +200,37 @@ exports.getTasksByProject = async (req, res, next) => {
   }
 };
 
+exports.getUserTasks = async (req, res, next) => {
+  try {
+    if (req.user.role === "admin") {
+      const tasks = await Task.find()
+        .populate("project", "name")
+        .populate("assignedTo", "name email")
+        .populate("createdBy", "name")
+        .sort({ updatedAt: -1 });
+      
+      return res.json(tasks);
+    }
+    
+    const accessibleProjects = await Project.find({
+      $or: [{ createdBy: req.user._id }, { members: req.user._id }]
+    }).select("_id");
+
+    const tasks = await Task.find({
+      project: {
+        $in: accessibleProjects
+      }
+    }).populate("project", "name")
+      .populate("assignedTo", "name email")
+      .populate("createdBy", "name")
+      .sort({ updatedAt: -1 });
+    
+    res.json(tasks);
+  } catch (err){
+    next(err);
+  }
+}
+
 exports.deleteTask = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -212,9 +243,10 @@ exports.deleteTask = async (req, res, next) => {
 
     const isAdmin = req.user.role === "admin";
     const isOwner = project.createdBy.equals(req.user._id);
+    const isTaskCreater = task.createdBy.equals(req.user._id);
 
-    if (!isAdmin && !isOwner) {
-      throw new ApiError(403, "Only project owner or admin can delete tasks");
+    if (!isAdmin && !isOwner && !isTaskCreater) {
+      throw new ApiError(403, "Only project owner, Task Creater or admin can delete tasks");
     }
 
     await task.deleteOne();

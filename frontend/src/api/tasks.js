@@ -5,6 +5,11 @@ export const getTasksByProject = async (projectId) => {
   return res.data;
 };
 
+export const getUserTasks = async () => {
+    const res = await api.get("/tasks");
+    return res.data;
+};
+
 export const createTask = async (taskData) => {
   const res = await api.post("/tasks", taskData);
   return res.data;

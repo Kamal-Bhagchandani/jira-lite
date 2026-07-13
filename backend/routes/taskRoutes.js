@@ -1,17 +1,23 @@
 const express = require("express");
-const { createTask, getTasksByProject, updateTask, deleteTask } = require("../controllers/taskController");
+const { createTask, getUserTasks, getTasksByProject, updateTask, deleteTask } = require("../controllers/taskController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+// Apply authentication to all routes below
+router.use(protect);
+
 // Create task
-router.post("/", protect, createTask);
+router.post("/", createTask);
+
+// Get tasks of all projects of user
+router.get("/", getUserTasks);
 
 // Get tasks of a project
-router.get("/project/:projectId", protect, getTasksByProject);
+router.get("/project/:projectId", getTasksByProject);
 
-router.patch("/:id", protect, updateTask);
+router.patch("/:id", updateTask);
 
-router.delete("/:id", protect, deleteTask);
+router.delete("/:id", deleteTask);
 
 module.exports = router;

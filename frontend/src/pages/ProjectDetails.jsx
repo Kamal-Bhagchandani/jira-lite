@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import MainLayout from "../components/layout/MainLayout";
-import ProjectHeader from "../components/kanban/ProjectHeader";
+import ProjectHeader from "../components/project/ProjectHeader";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 
 import { getProjectById, addProjectMembers, deleteProject } from "../api/projects";
 import { getTasksByProject, createTask, updateTask, deleteTask } from "../api/tasks";
-import CreateTaskModal from "../components/modals/CreateTaskModal";
-import TaskDetailsModal from "../components/modals/TaskDetailsModal";
-import AddMembersModal from "../components/modals/AddMembersModal";
+import CreateTaskModal from "../components/task/CreateTaskModal";
+import TaskDetailsModal from "../components/task/TaskDetailsModal";
+import AddMembersModal from "../components/project/AddMembersModal";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -58,7 +58,7 @@ const ProjectDetails = () => {
     try {
       await deleteProject(id);
 
-      navigate("/dashboard");
+      navigate("/project");
     } catch (err) {
       console.error(err);
     }

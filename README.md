@@ -98,6 +98,7 @@ jira-lite/
 │   │   ├── layouts/
 │   │   ├── pages/
 │   │   ├── schemas/
+│   │   ├── utils/
 │   │   └── App.jsx
 │   │
 │   └── package.json

@@ -1,4 +1,4 @@
-const TaskCard = ({ task, onClick }) => {
+const TaskCard = ({ task, onClick, type }) => {
   return (
     <div
       onClick={() => onClick(task)}

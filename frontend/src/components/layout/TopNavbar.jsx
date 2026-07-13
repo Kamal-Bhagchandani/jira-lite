@@ -16,10 +16,6 @@ const TopNavbar = () => {
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-          Create Project
-        </button>
-
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold">
           {user?.name?.charAt(0).toUpperCase()}
         </div>

@@ -1,100 +1,119 @@
 import { useEffect, useState } from "react";
-import { getProjects, createProject } from "../api/projects";
+import { useNavigate } from "react-router-dom";
+
 import MainLayout from "../components/layout/MainLayout";
-import ProjectCard from "../components/dashboard/ProjectCard";
-import CreateProjectModal from "../components/modals/CreateProjectModal";
+
+import { useAuth } from "../context/AuthContext";
+
+import { getProjects } from "../api/projects";
+import { getUserTasks } from "../api/tasks";
+import DashboardSection from "../components/common/DashboardSection";
+import SectionHeader from "../components/common/SectionHeader";
+import ProjectCard from "../components/project/ProjectCard";
+import TaskListItem from "../components/task/TaskListItem";
+import TaskPreviewModal from "../components/task/TaskPreviewModal";
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskPreview, setShowTaskPreview] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const loadProjects = async () => {
+    const loadDashboard = async () => {
       try {
-        const data = await getProjects();
-        setProjects(data);
+        const [projectData, taskData] = await Promise.all([
+          getProjects(),
+          getUserTasks(),
+        ]);
+
+        setProjects(projectData);
+        setTasks(taskData);
       } catch (err) {
-        console.error("Failed to load projects");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProjects();
+    loadDashboard();
   }, []);
 
-  const handleCreateProject = async (projectData) => {
-    try {
-      const newProject = await createProject(projectData);
-
-      setProjects((prev) => [newProject, ...prev]);
-
-      return {
-        success: true,
-      };
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to create project",
-      };
-    }
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setShowTaskPreview(true);
   };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="p-8">Loading...</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Project Dashboard</h1>
+      <DashboardSection>
+        <SectionHeader
+          title="Recent Projects"
+          buttonText="View All →"
+          to="/projects"
+        />
 
-            <p className="text-gray-500 mt-2">
-              Manage and track your projects.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className="
-            bg-indigo-600
-            hover:bg-indigo-700
-            text-white
-            px-5
-            py-3
-            rounded-xl
-            font-medium
-            shadow
-          "
-          >
-            Create Project
-          </button>
-        </div>
-
-        {/* Loading State */}
-        {loading && <p className="text-gray-500">Loading projects...</p>}
-
-        {/* Empty State */}
-        {!loading && projects.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-8">
-            <p className="text-gray-500">No projects found.</p>
-          </div>
-        )}
-
-        {/* Project Grid */}
-        {!loading && projects.length > 0 && (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {projects.map((project) => (
+        {projects.length === 0 ? (
+          <p className="text-gray-500">
+            No projects yet.
+            <br />
+            Create your first project to get started.
+          </p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {projects.slice(0, 3).map((project) => (
               <ProjectCard key={project._id} project={project} />
             ))}
           </div>
         )}
-      </div>
-      <CreateProjectModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onCreate={handleCreateProject}
-      />
+      </DashboardSection>
+      <DashboardSection>
+        <SectionHeader
+          title="Recent Tasks"
+          buttonText="View All →"
+          to="/tasks"
+        />
+
+        {tasks.length === 0 ? (
+          <p className="text-gray-500">
+            No recent tasks.
+            <br />
+            Tasks assigned to you will appear here.
+          </p>
+        ) : (
+          <div>
+            {tasks.slice(0, 5).map((task) => (
+              <TaskListItem
+                key={task._id}
+                task={task}
+                onClick={handleTaskClick}
+              />
+            ))}
+          </div>
+        )}
+      </DashboardSection>
+      {showTaskPreview && (
+        <TaskPreviewModal
+          show={showTaskPreview}
+          task={selectedTask}
+          onClose={() => {
+            setShowTaskPreview(false);
+            setSelectedTask(null);
+          }}
+        />
+      )}
     </MainLayout>
   );
 };

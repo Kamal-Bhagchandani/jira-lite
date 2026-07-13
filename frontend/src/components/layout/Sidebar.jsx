@@ -16,11 +16,7 @@ const Sidebar = () => {
     {
       label: "Tasks",
       path: "/tasks",
-    },
-    {
-      label: "Settings",
-      path: "/settings",
-    },
+    }
   ];
 
   return (
@@ -57,9 +53,22 @@ const Sidebar = () => {
 
       {/* Bottom Section */}
       <div className="border-t pt-4">
+        <NavLink
+          key={"/settings"}
+          to={"/settings"}
+          className={({ isActive }) =>
+            `flex flex-col gap-2 flex-1 px-4 py-3 rounded-lg font-medium transition ${
+              isActive
+                ? "bg-white text-indigo-600 shadow"
+                : "text-gray-600 hover:bg-gray-200"
+            }`
+          }
+        >
+          {"Settings"}
+        </NavLink>
         <button
           onClick={logout}
-          className="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200"
+          className="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 my-4"
         >
           Logout
         </button>

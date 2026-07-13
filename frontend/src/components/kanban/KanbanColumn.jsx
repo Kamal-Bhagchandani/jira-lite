@@ -1,4 +1,4 @@
-import TaskCard from "./TaskCard";
+import TaskCard from "../task/TaskCard";
 
 const KanbanColumn = ({ title, tasks, onTaskClick }) => {
   return (

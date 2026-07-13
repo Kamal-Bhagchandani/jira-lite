@@ -64,6 +64,13 @@ exports.createProject = async (req, res, next) => {
 // Get projects for logged-in user
 exports.getMyProjects = async (req, res, next) => {
   try {
+    if(req.user.role == "admin"){
+      const projects = await Project.find()
+        .populate("createdBy", "name email");
+
+      return res.json(projects);
+    }
+
     const projects = await Project.find({
       $or: [{ createdBy: req.user._id }, { members: req.user._id }],
     }).populate("createdBy", "name email");

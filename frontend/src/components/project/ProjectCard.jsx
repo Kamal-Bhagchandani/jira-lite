@@ -7,7 +7,7 @@ const ProjectCard = ({ project }) => {
 	return (
     <div
       onClick={() => navigate(`/projects/${project._id}`)}
-      className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition cursor-pointer"
+      className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition cursor-pointer hover:shadow-lg hover:-translate-y-1"
 			>
       {/* Status */}
       <div className="flex justify-between items-center mb-4">
