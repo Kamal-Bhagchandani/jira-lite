@@ -5,8 +5,8 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import Settings from "./pages/Settings";
-import ProtectedRoute from "./components/routes/ProtectedRoute";
-import GuestRoute from "./components/routes/GuestRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import GuestRoute from "./routes/GuestRoute";
 import ProjectDetails from "./pages/ProjectDetails";
 
 function App() {

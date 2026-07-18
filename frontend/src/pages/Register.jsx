@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../schemas/authSchema";
 import { useAuth } from "../context/AuthContext";
 
-import AuthLayout from "../layouts/AuthLayout";
+import AuthLayout from "../components/layout/AuthLayout";
 
 const Register = () => {
   const navigate = useNavigate();

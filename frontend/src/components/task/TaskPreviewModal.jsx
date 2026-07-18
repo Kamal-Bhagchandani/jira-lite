@@ -126,8 +126,7 @@ const TaskPreviewModal = ({ show, task, onClose }) => {
         </div>
 
         {/* Footer */}
-
-        <div className="border-t px-8 py-4 flex justify-end gap-4">
+        <div className="border-t px-8 py-1 flex justify-end gap-4">
           <button onClick={onClose} className="border px-5 py-2 rounded-xl">
             Close
           </button>

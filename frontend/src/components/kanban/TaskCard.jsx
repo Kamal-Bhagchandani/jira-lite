@@ -1,4 +1,8 @@
-const TaskCard = ({ task, onClick, type }) => {
+import { useMatch } from "react-router-dom";
+
+const TaskCard = ({ task, onClick }) => {
+  const isTasksPage = useMatch("/tasks");
+
   return (
     <div
       onClick={() => onClick(task)}
@@ -7,7 +11,7 @@ const TaskCard = ({ task, onClick, type }) => {
       <div className="flex justify-between mb-3">
 
         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-          {task.type}
+          {isTasksPage && task.status}
         </span>
 
         <span

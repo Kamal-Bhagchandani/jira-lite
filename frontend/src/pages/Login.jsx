@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../schemas/authSchema";
 import { useAuth } from "../context/AuthContext";
 
-import AuthLayout from "../layouts/AuthLayout";
+import AuthLayout from "../components/layout/AuthLayout";
 
 const Login = () => {
   const navigate = useNavigate();

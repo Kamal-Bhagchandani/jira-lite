@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { getPriorityColor, getStatusColor } from "../../utils/taskStyles";
 
 const TaskListItem = ({ task, onClick }) => {
@@ -22,7 +23,15 @@ const TaskListItem = ({ task, onClick }) => {
       <div>
         <h3 className="font-semibold text-gray-900">{task.title}</h3>
 
-        <p className="text-sm text-gray-500 mt-1">{task.project.name}</p>
+        <p className="text-sm text-gray-500 mt-1">
+          <Link
+            to={`/projects/${task.project._id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-gray-500 hover:text-indigo-600 hover:underline"
+          >
+            {task.project.name}
+          </Link>
+        </p>
       </div>
 
       {/* Right */}
