@@ -44,7 +44,6 @@ const Login = () => {
       subtitle="Manage your projects efficiently."
       footerText="Don't have an account?"
       footerLinkText="Create one"
-      footerLink="/register"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {serverError && (

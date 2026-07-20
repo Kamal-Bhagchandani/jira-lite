@@ -9,7 +9,8 @@ const Settings = () => {
         </h1>
 
         <p className="mt-2 text-gray-500">
-          Manage your account preferences.
+          Manage your account preferences.<br />
+          (Coming Soon...)
         </p>
       </div>
     </MainLayout>

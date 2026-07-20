@@ -13,14 +13,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
+        {/* <Route
           path="/register"
           element={
             <GuestRoute>
               <Register />
             </GuestRoute>
           }
-        />
+        /> */}
         <Route
           path="/login"
           element={
